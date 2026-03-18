@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Liked Videos – Codara</title>
+    <link rel="icon" href="assets/hamico.png" type="image/x-icon" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://pl28581525.effectivegatecpm.com/74/0e/8a/740e8a8d15d4dc2ab86673d6fc3d5cc1.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #ffffff; overflow-x: hidden; }
+
+.sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 240px; background: #131313; border-right: 1px solid #1f1f1f; padding: 20px 12px 20px; overflow-y: auto; z-index: 150; transition: transform 0.3s ease; }
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+.sidebar .logo { display: flex; align-items: center; gap: 10px; font-size: 34px; font-weight: 800; padding: 10px 12px; color: #ffffff; text-decoration: none; border-radius: 8px; margin-bottom: 12px; }
+.sidebar .logo .logo-icon { width: 56px; height: 56px; border-radius: 8px; background: url('assets/hamico.png') center/contain no-repeat; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+.sidebar .logo:hover { background: rgba(0, 31, 63, 0.09); }
+.logo-icon { background: url('assets/hamico.png') center/contain no-repeat; display: flex; align-items: center; justify-content: center; position: relative; }
+.logo-icon::before { content: ''; }
+.sidebar-item { display: flex; align-items: center; gap: 16px; padding: 12px 16px; color: #b0b0b0; text-decoration: none; border-radius: 8px; transition: all 0.2s; cursor: pointer; margin-bottom: 4px; }
+.sidebar-item:hover { background: #1f1f1f; color: #ffffff; }
+.sidebar-item.active { background: #001f3f; color: #ffffff; }
+.sidebar-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+.sidebar-item-text { font-size: 14px; font-weight: 500; }
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-section-title { padding: 8px 16px; font-size: 12px; font-weight: 600; color: #6b6b6b; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-divider { height: 1px; background: #1f1f1f; margin: 12px 0; }
+
+.navbar { background: #131313; padding: 9px 40px 9px 280px; display: flex; align-items: center; justify-content: flex-end; gap: 32px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #1f1f1f; min-height: 70px; }
+.search-container { position: absolute; left: 50%; transform: translateX(-50%); width: 100%; max-width: 700px; padding: 0 20px; }
+.search-icon { position: absolute; left: 36px; top: 50%; transform: translateY(-50%); color: #6b6b6b; pointer-events: none; }
+.search-input { width: 100%; padding: 10px 16px 10px 44px; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; color: #ffffff; font-size: 14px; transition: all 0.2s; }
+.search-input:focus { outline: none; border-color: #001f3f; background: #252525; }
+.search-input::placeholder { color: #6b6b6b; }
+.navbar::before { content: ''; flex: 1; }
+.nav-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; position: relative; z-index: 10; }
+
+.btn { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn-secondary { background: transparent; color: #ffffff; border: 1px solid #3a3a3a; }
+.btn-secondary:hover { background: #1f1f1f; }
+.btn-primary { background: linear-gradient(135deg, #001f3f 0%, #000000 100%); color: white; }
+.btn-primary:hover { background: linear-gradient(135deg, #001f3f 0%, #000000 100%); transform: translateY(-1px); }
+
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #001f3f 0%, #000000 100%); cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; transition: transform 0.2s; overflow: hidden; }
+.user-avatar:hover { transform: scale(1.05); }
+.user-menu { position: relative; }
+.dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s; z-index: 1000; }
+.dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+.dropdown-item { padding: 12px 16px; color: #b0b0b0; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: all 0.2s; cursor: pointer; border: none; background: transparent; width: 100%; text-align: left; font-size: 14px; }
+.dropdown-item:hover { background: #2a2a2a; color: #ffffff; }
+.dropdown-divider { height: 1px; background: #2a2a2a; margin: 4px 0; }
+
+.main-content { margin-left: 240px; padding: 24px 40px; min-height: 100vh; }
+.sidebar-toggle { background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; padding: 10px; cursor: pointer; display: none; transition: all 0.2s; flex-shrink: 0; }
+.sidebar-toggle:hover { background: #2a2a2a; }
+.sidebar-toggle svg { width: 20px; height: 20px; color: #ffffff; }
+
+/* Page specific */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+.page-title { font-size: 26px; font-weight: 700; }
+.page-title-sub { font-size: 14px; color: #6b6b6b; margin-top: 4px; }
+
+/* Video grid */
+.video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+.video-card { background: #111111; border-radius: 12px; overflow: hidden; transition: transform 0.2s, background 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; position: relative; }
+.video-card:hover { transform: translateY(-3px); background: #161616; }
+.video-card:hover .unlike-btn { opacity: 1; }
+
+.card-thumb { position: relative; width: 100%; aspect-ratio: 16/9; background: #1a1a1a; overflow: hidden; }
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #2a2a2a; background: linear-gradient(135deg, #001f3f 0%, #000000 100%); }
+
+.card-info { padding: 12px 14px 14px; }
+.card-title { font-size: 14px; font-weight: 500; color: #f0f0f0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
+.card-meta { font-size: 12px; color: #6b6b6b; display: flex; align-items: center; gap: 6px; }
+.meta-dot { width: 3px; height: 3px; background: #3a3a3a; border-radius: 50%; }
+
+/* Unlike button */
+.unlike-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.75); border: none; border-radius: 6px; padding: 6px; cursor: pointer; opacity: 0; transition: all 0.2s; color: #f87171; display: flex; align-items: center; justify-content: center; }
+.unlike-btn:hover { background: rgba(248,113,113,0.2); }
+.unlike-btn svg { width: 15px; height: 15px; }
+
+/* Skeleton */
+.skeleton { background: linear-gradient(90deg, #141414 25%, #1e1e1e 50%, #141414 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-card { background: #111111; border-radius: 12px; overflow: hidden; }
+.skeleton-thumb { width: 100%; aspect-ratio: 16/9; }
+.skeleton-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+/* States */
+.state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center; gap: 16px; }
+.state-icon { width: 56px; height: 56px; color: #2a2a2a; }
+.state-title { font-size: 18px; font-weight: 600; color: #7a7a7a; }
+.state-sub { font-size: 14px; color: #4a4a4a; max-width: 300px; line-height: 1.5; }
+
+/* Toast */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #1f1f1f; border: 1px solid #2a2a2a; color: #ffffff; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 2000; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.4); white-space: nowrap; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-toggle { display: block; }
+    .main-content { margin-left: 0; padding: 16px 20px; }
+    .navbar { padding: 16px 20px; justify-content: flex-start; gap: 12px; }
+    .search-container { position: relative; left: auto; transform: none; flex: 1; max-width: none; padding: 0; margin-left: 0; }
+    .search-icon { left: 16px; }
+    .navbar::before { display: none; }
+}
+@media (max-width: 640px) {
+    .navbar { padding: 12px 16px; gap: 12px; }
+    .main-content { padding: 12px 16px; }
+    .video-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .unlike-btn { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <a href="index.html" class="logo" aria-label="Codara home (logo)">
+        <div class="logo-icon" aria-hidden="true"></div>
+        Codara
+    </a>
+    <div class="sidebar-section">
+        <a href="index.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span class="sidebar-item-text">Home</span>
+        </a>
+        <a href="index.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <span class="sidebar-item-text">Trending</span>
+        </a>
+        <a href="subs.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span class="sidebar-item-text">Subscriptions</span>
+        </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Library</div>
+        <a href="history.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span class="sidebar-item-text">History</span>
+        </a>
+        <a href="yourvideos.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span class="sidebar-item-text">Your Videos</span>
+        </a>
+        <a href="like.html" class="sidebar-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span class="sidebar-item-text">Liked Videos</span>
+        </a>
+        <a href="tools.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+            <span class="sidebar-item-text">Toolbox</span>
+        </a>
+    </div>
+</aside>
+
+<nav class="navbar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
+    <div class="search-container">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <input type="text" class="search-input" placeholder="Search liked videos..." id="likeSearch">
+    </div>
+    <div class="nav-right" id="navRight"></div>
+</nav>
+
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Liked Videos</h1>
+            <p class="page-title-sub" id="videoCount"></p>
+        </div>
+    </div>
+    <div id="videosContent">
+        <div class="video-grid">
+            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton" style="height:14px;width:85%;"></div><div class="skeleton" style="height:12px;width:55%;"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton" style="height:14px;width:70%;"></div><div class="skeleton" style="height:12px;width:45%;"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton" style="height:14px;width:90%;"></div><div class="skeleton" style="height:12px;width:60%;"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton" style="height:14px;width:75%;"></div><div class="skeleton" style="height:12px;width:50%;"></div></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const { supabase } = await import('./JS/supabase.js');
+
+function getUserInitials(text) { return text?.trim().charAt(0).toUpperCase() || 'U'; }
+function getDisplayName(user) {
+    if (user.user_metadata?.full_name) return user.user_metadata.full_name;
+    if (user.user_metadata?.name) return user.user_metadata.name;
+    if (user.email) { const n = user.email.split('@')[0]; return n.charAt(0).toUpperCase() + n.slice(1); }
+    return 'User';
+}
+
+function showLoggedInState(user) {
+    const navRight = document.getElementById('navRight');
+    if (!navRight) return;
+    const displayName = getDisplayName(user);
+    const avatarUrl = user.user_metadata?.avatar_url;
+    const avatarHTML = avatarUrl
+        ? `<img src="${avatarUrl}" alt="${displayName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        : getUserInitials(displayName);
+    navRight.innerHTML = `
+        <div class="user-menu">
+            <div class="user-avatar" id="userAvatar">${avatarHTML}</div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="channel.html" class="dropdown-item">Your Channel</a>
+                <a href="settings.html" class="dropdown-item">Settings</a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" id="logoutBtn">Log out</button>
+            </div>
+        </div>`;
+    document.getElementById('userAvatar')?.addEventListener('click', e => { e.stopPropagation(); document.getElementById('dropdownMenu').classList.toggle('show'); });
+    document.addEventListener('click', () => document.getElementById('dropdownMenu')?.classList.remove('show'));
+    document.getElementById('dropdownMenu')?.addEventListener('click', e => e.stopPropagation());
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
+}
+
+function showLoggedOutState() {
+    document.getElementById('navRight').innerHTML = `<a href="login.html" class="btn btn-secondary">Log in</a><a href="login.html?mode=signup" class="btn btn-primary">Sign up</a>`;
+}
+
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', e => { e.stopPropagation(); sidebar.classList.toggle('open'); });
+    document.addEventListener('click', e => { if (window.innerWidth <= 1024 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) sidebar.classList.remove('open'); });
+    sidebar.addEventListener('click', e => e.stopPropagation());
+}
+
+function formatViews(n) {
+    if (!n) return '0 views';
+    if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace(/\.0$/,'') + 'M views';
+    if (n >= 1_000) return (n/1_000).toFixed(1).replace(/\.0$/,'') + 'K views';
+    return n + ' views';
+}
+
+function formatTimeAgo(str) {
+    if (!str) return '';
+    const seconds = Math.floor((Date.now() - new Date(str)) / 1000);
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return Math.floor(seconds/60) + ' min ago';
+    if (seconds < 86400) return Math.floor(seconds/3600) + ' hr ago';
+    if (seconds < 2592000) return Math.floor(seconds/86400) + ' days ago';
+    if (seconds < 31536000) return Math.floor(seconds/2592000) + ' mo ago';
+    return Math.floor(seconds/31536000) + ' yr ago';
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+let allLiked = [];
+let currentUserId = null;
+
+function renderLiked(items) {
+    const countEl = document.getElementById('videoCount');
+    const container = document.getElementById('videosContent');
+
+    if (!items || items.length === 0) {
+        countEl.textContent = '';
+        container.innerHTML = `
+            <div class="state-container">
+                <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                <div class="state-title">No liked videos yet</div>
+                <div class="state-sub">Videos you like will show up here. Start exploring and hit that heart!</div>
+                <a href="index.html" class="btn btn-primary" style="margin-top:8px;">Browse videos</a>
+            </div>`;
+        return;
+    }
+
+    countEl.textContent = `${items.length} video${items.length !== 1 ? 's' : ''}`;
+
+    container.innerHTML = `<div class="video-grid">${items.map(item => {
+        const v = item.videos || {};
+        const thumb = v.thumbnail_url
+            ? `<img src="${v.thumbnail_url}" alt="${v.title || ''}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
+            : `<div class="card-thumb-placeholder"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>`;
+
+        return `
+            <div class="video-card" id="card-${item.video_id}">
+                <a href="watch.html?video_id=${v.id || ''}" style="text-decoration:none;color:inherit;">
+                    <div class="card-thumb">${thumb}</div>
+                    <div class="card-info">
+                        <div class="card-title">${v.title || 'Untitled'}</div>
+                        <div class="card-meta">
+                            <span>${v.uploader_username || ''}</span>
+                            ${v.uploader_username && v.views ? '<span class="meta-dot"></span>' : ''}
+                            <span>${formatViews(v.views)}</span>
+                            ${v.created_at ? '<span class="meta-dot"></span>' : ''}
+                            <span>${formatTimeAgo(v.created_at)}</span>
+                        </div>
+                    </div>
+                </a>
+                <button class="unlike-btn" title="Unlike" onclick="unlikeVideo('${item.video_id}', event)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>`;
+    }).join('')}</div>`;
+}
+
+function renderNotLoggedIn() {
+    document.getElementById('videoCount').textContent = '';
+    document.getElementById('videosContent').innerHTML = `
+        <div class="state-container">
+            <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <div class="state-title">Sign in to see liked videos</div>
+            <div class="state-sub">Like videos while watching and they'll all appear here.</div>
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <a href="login.html" class="btn btn-secondary">Log in</a>
+                <a href="login.html?mode=signup" class="btn btn-primary">Sign up</a>
+            </div>
+        </div>`;
+}
+
+// Unlike a video
+window.unlikeVideo = async function(videoId, e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const { error } = await supabase
+        .from('video_likes')
+        .delete()
+        .eq('video_id', videoId)
+        .eq('user_id', currentUserId);
+
+    if (error) { showToast('Failed to unlike video'); return; }
+
+    // Animate removal
+    const card = document.getElementById(`card-${videoId}`);
+    if (card) {
+        card.style.transition = 'opacity 0.25s, transform 0.25s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            allLiked = allLiked.filter(i => i.video_id !== videoId);
+            renderLiked(allLiked);
+        }, 250);
+    }
+
+    showToast('Removed from liked videos');
+};
+
+// Search filter
+document.getElementById('likeSearch')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    if (!q) { renderLiked(allLiked); return; }
+    const filtered = allLiked.filter(item => {
+        const title = (item.videos?.title || '').toLowerCase();
+        const channel = (item.videos?.uploader_username || '').toLowerCase();
+        return title.includes(q) || channel.includes(q);
+    });
+    renderLiked(filtered);
+});
+
+async function loadLikedVideos(userId) {
+    const { data, error } = await supabase
+        .from('video_likes')
+        .select(`video_id, created_at, videos (id, title, thumbnail_url, views, uploader_username, created_at)`)
+        .eq('user_id', userId)
+        .eq('is_like', true)
+        .order('created_at', { ascending: false });
+
+    if (error) { console.error('Error loading liked videos:', error); renderLiked([]); return; }
+    allLiked = data || [];
+    renderLiked(allLiked);
+}
+
+async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        showLoggedInState(session.user);
+        currentUserId = session.user.id;
+        await loadLikedVideos(session.user.id);
+    } else {
+        showLoggedOutState();
+        renderNotLoggedIn();
+    }
+
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            showLoggedInState(session.user);
+            currentUserId = session.user.id;
+            await loadLikedVideos(session.user.id);
+        }
+        if (event === 'SIGNED_OUT') {
+            currentUserId = null; allLiked = [];
+            showLoggedOutState();
+            renderNotLoggedIn();
+        }
+    });
+}
+
+init();
+</script>
+</body>
+</html>

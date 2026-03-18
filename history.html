@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>History – Codara</title>
+    <link rel="icon" href="assets/hamico.png" type="image/x-icon" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://pl28581525.effectivegatecpm.com/74/0e/8a/740e8a8d15d4dc2ab86673d6fc3d5cc1.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #ffffff; overflow-x: hidden; }
+
+.sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 240px; background: #131313; border-right: 1px solid #1f1f1f; padding: 20px 12px 20px; overflow-y: auto; z-index: 150; transition: transform 0.3s ease; }
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+.sidebar .logo { display: flex; align-items: center; gap: 10px; font-size: 34px; font-weight: 800; padding: 10px 12px; color: #ffffff; text-decoration: none; border-radius: 8px; margin-bottom: 12px; }
+.sidebar .logo .logo-icon { width: 56px; height: 56px; border-radius: 8px; background: url('assets/hamico.png') center/contain no-repeat; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+.sidebar .logo:hover { background: rgba(0, 31, 63, 0.09); }
+.logo-icon { background: url('assets/hamico.png') center/contain no-repeat; display: flex; align-items: center; justify-content: center; position: relative; }
+.logo-icon::before { content: ''; }
+.sidebar-item { display: flex; align-items: center; gap: 16px; padding: 12px 16px; color: #b0b0b0; text-decoration: none; border-radius: 8px; transition: all 0.2s; cursor: pointer; margin-bottom: 4px; }
+.sidebar-item:hover { background: #1f1f1f; color: #ffffff; }
+.sidebar-item.active { background: #001f3f; color: #ffffff; }
+.sidebar-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+.sidebar-item-text { font-size: 14px; font-weight: 500; }
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-section-title { padding: 8px 16px; font-size: 12px; font-weight: 600; color: #6b6b6b; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-divider { height: 1px; background: #1f1f1f; margin: 12px 0; }
+
+.navbar { background: #131313; padding: 9px 40px 9px 280px; display: flex; align-items: center; justify-content: flex-end; gap: 32px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #1f1f1f; min-height: 70px; }
+.search-container { position: absolute; left: 50%; transform: translateX(-50%); width: 100%; max-width: 700px; padding: 0 20px; }
+.search-icon { position: absolute; left: 36px; top: 50%; transform: translateY(-50%); color: #6b6b6b; pointer-events: none; }
+.search-input { width: 100%; padding: 10px 16px 10px 44px; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; color: #ffffff; font-size: 14px; transition: all 0.2s; }
+.search-input:focus { outline: none; border-color: #001f3f; background: #252525; }
+.search-input::placeholder { color: #6b6b6b; }
+.navbar::before { content: ''; flex: 1; }
+.nav-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; position: relative; z-index: 10; }
+
+.btn { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+.btn-secondary { background: transparent; color: #ffffff; border: 1px solid #3a3a3a; }
+.btn-secondary:hover { background: #1f1f1f; }
+.btn-primary { background: linear-gradient(135deg, #001f3f 0%, #000000 100%); color: white; }
+.btn-primary:hover { background: linear-gradient(135deg, #001f3f 0%, #000000 100%); transform: translateY(-1px); }
+.btn-danger { background: transparent; color: #f87171; border: 1px solid #3a2a2a; padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.btn-danger:hover { background: rgba(248, 113, 113, 0.1); border-color: #f87171; }
+
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #001f3f 0%, #000000 100%); cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; transition: transform 0.2s; overflow: hidden; }
+.user-avatar:hover { transform: scale(1.05); }
+.user-menu { position: relative; }
+.dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s; z-index: 1000; }
+.dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+.dropdown-item { padding: 12px 16px; color: #b0b0b0; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: all 0.2s; cursor: pointer; border: none; background: transparent; width: 100%; text-align: left; font-size: 14px; }
+.dropdown-item:hover { background: #2a2a2a; color: #ffffff; }
+.dropdown-divider { height: 1px; background: #2a2a2a; margin: 4px 0; }
+
+.main-content { margin-left: 240px; padding: 24px 40px; min-height: 100vh; transition: margin-left 0.3s ease; }
+
+.sidebar-toggle { background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; padding: 10px; cursor: pointer; display: none; transition: all 0.2s; flex-shrink: 0; }
+.sidebar-toggle:hover { background: #2a2a2a; }
+.sidebar-toggle svg { width: 20px; height: 20px; color: #ffffff; }
+
+/* History specific */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+.page-title { font-size: 26px; font-weight: 700; color: #ffffff; }
+.page-title-sub { font-size: 14px; color: #6b6b6b; margin-top: 4px; }
+.date-group { margin-bottom: 32px; }
+.date-label { font-size: 13px; font-weight: 600; color: #6b6b6b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1f1f1f; }
+.video-list { display: flex; flex-direction: column; gap: 4px; }
+.video-item { display: flex; align-items: center; gap: 16px; padding: 10px 12px; border-radius: 10px; transition: background 0.2s; cursor: pointer; text-decoration: none; color: inherit; position: relative; }
+.video-item:hover { background: #161616; }
+.video-item:hover .remove-btn { opacity: 1; }
+.thumbnail-wrap { position: relative; flex-shrink: 0; width: 168px; height: 94px; border-radius: 8px; overflow: hidden; background: #1a1a1a; }
+.thumbnail-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumbnail-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #001f3f 0%, #000000 100%); display: flex; align-items: center; justify-content: center; }
+.thumbnail-placeholder svg { color: #3a3a3a; }
+.duration-badge { position: absolute; bottom: 5px; right: 6px; background: rgba(0,0,0,0.82); color: #fff; font-size: 11px; font-weight: 600; padding: 2px 5px; border-radius: 4px; letter-spacing: 0.3px; }
+.progress-bar { position: absolute; bottom: 0; left: 0; height: 3px; background: #001f3f; border-radius: 0 2px 2px 0; }
+.video-info { flex: 1; min-width: 0; }
+.video-title { font-size: 15px; font-weight: 500; color: #f0f0f0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
+.video-meta { font-size: 13px; color: #7a7a7a; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.meta-dot { width: 3px; height: 3px; background: #4a4a4a; border-radius: 50%; }
+.video-channel { color: #9a9a9a; font-weight: 500; }
+.remove-btn { opacity: 0; background: #1f1f1f; border: 1px solid #2a2a2a; color: #9a9a9a; border-radius: 6px; padding: 6px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.remove-btn:hover { background: #2a2a2a; color: #f87171; border-color: #3a2a2a; }
+.remove-btn svg { width: 16px; height: 16px; }
+
+.state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center; gap: 16px; }
+.state-icon { width: 64px; height: 64px; color: #3a3a3a; }
+.state-title { font-size: 18px; font-weight: 600; color: #9a9a9a; }
+.state-sub { font-size: 14px; color: #5a5a5a; max-width: 320px; line-height: 1.5; }
+
+.skeleton { background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-item { display: flex; gap: 16px; padding: 10px 12px; align-items: center; }
+.skeleton-thumb { width: 168px; height: 94px; flex-shrink: 0; border-radius: 8px; }
+.skeleton-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.skeleton-title { height: 16px; width: 80%; }
+.skeleton-meta { height: 13px; width: 50%; }
+.skeleton-meta2 { height: 13px; width: 35%; }
+
+@media (max-width: 1024px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-toggle { display: block; }
+    .main-content { margin-left: 0; padding: 16px 20px; }
+    .navbar { padding: 16px 20px; justify-content: flex-start; gap: 12px; }
+    .search-container { position: relative; left: auto; transform: none; flex: 1; max-width: none; padding: 0; margin-left: 0; }
+    .search-icon { left: 16px; }
+    .navbar::before { display: none; }
+}
+@media (max-width: 640px) {
+    .navbar { padding: 12px 16px; gap: 12px; }
+    .thumbnail-wrap { width: 120px; height: 68px; }
+    .skeleton-thumb { width: 120px; height: 68px; }
+    .video-title { font-size: 14px; }
+    .remove-btn { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <a href="index.html" class="logo" aria-label="Codara home (logo)">
+        <div class="logo-icon" aria-hidden="true"></div>
+        Codara
+    </a>
+    <div class="sidebar-section">
+        <a href="index.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span class="sidebar-item-text">Home</span>
+        </a>
+        <a href="index.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <span class="sidebar-item-text">Trending</span>
+        </a>
+        <a href="subs.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span class="sidebar-item-text">Subscriptions</span>
+        </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Library</div>
+        <a href="history.html" class="sidebar-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span class="sidebar-item-text">History</span>
+        </a>
+        <a href="yourvideos.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span class="sidebar-item-text">Your Videos</span>
+        </a>
+        <a href="like.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span class="sidebar-item-text">Liked Videos</span>
+        </a>
+        <a href="tools.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+            <span class="sidebar-item-text">Toolbox</span>
+        </a>
+    </div>
+</aside>
+
+<nav class="navbar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
+    <div class="search-container">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <input type="text" class="search-input" placeholder="Search history..." id="historySearch">
+    </div>
+    <div class="nav-right" id="navRight"></div>
+</nav>
+
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Watch History</h1>
+            <p class="page-title-sub" id="historyCount"></p>
+        </div>
+        <button class="btn btn-danger" id="clearHistoryBtn" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4h6v2"></path></svg>
+            Clear all history
+        </button>
+    </div>
+    <div id="historyContent">
+        <div id="loadingState">
+            <div class="skeleton-item"><div class="skeleton skeleton-thumb"></div><div class="skeleton-info"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-meta"></div><div class="skeleton skeleton-meta2"></div></div></div>
+            <div class="skeleton-item"><div class="skeleton skeleton-thumb"></div><div class="skeleton-info"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-meta"></div><div class="skeleton skeleton-meta2"></div></div></div>
+            <div class="skeleton-item"><div class="skeleton skeleton-thumb"></div><div class="skeleton-info"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-meta"></div><div class="skeleton skeleton-meta2"></div></div></div>
+            <div class="skeleton-item"><div class="skeleton skeleton-thumb"></div><div class="skeleton-info"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-meta"></div><div class="skeleton skeleton-meta2"></div></div></div>
+            <div class="skeleton-item"><div class="skeleton skeleton-thumb"></div><div class="skeleton-info"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-meta"></div><div class="skeleton skeleton-meta2"></div></div></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+const { supabase } = await import('./JS/supabase.js');
+
+function getUserInitials(text) { return text?.trim().charAt(0).toUpperCase() || 'U'; }
+function getDisplayName(user) {
+    if (user.user_metadata?.full_name) return user.user_metadata.full_name;
+    if (user.user_metadata?.name) return user.user_metadata.name;
+    if (user.email) { const n = user.email.split('@')[0]; return n.charAt(0).toUpperCase() + n.slice(1); }
+    return 'User';
+}
+
+function showLoggedInState(user) {
+    const navRight = document.getElementById('navRight');
+    if (!navRight) return;
+    const displayName = getDisplayName(user);
+    const avatarUrl = user.user_metadata?.avatar_url;
+    const avatarHTML = avatarUrl
+        ? `<img src="${avatarUrl}" alt="${displayName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        : getUserInitials(displayName);
+    navRight.innerHTML = `
+        <div class="user-menu">
+            <div class="user-avatar" id="userAvatar">${avatarHTML}</div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="channel.html" class="dropdown-item">Your Channel</a>
+                <a href="settings.html" class="dropdown-item">Settings</a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" id="logoutBtn">Log out</button>
+            </div>
+        </div>`;
+    document.getElementById('userAvatar')?.addEventListener('click', e => { e.stopPropagation(); document.getElementById('dropdownMenu').classList.toggle('show'); });
+    document.addEventListener('click', () => document.getElementById('dropdownMenu')?.classList.remove('show'));
+    document.getElementById('dropdownMenu')?.addEventListener('click', e => e.stopPropagation());
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
+}
+
+function showLoggedOutState() {
+    const navRight = document.getElementById('navRight');
+    if (!navRight) return;
+    navRight.innerHTML = `<a href="login.html" class="btn btn-secondary">Log in</a><a href="login.html?mode=signup" class="btn btn-primary">Sign up</a>`;
+}
+
+// Sidebar toggle
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', e => { e.stopPropagation(); sidebar.classList.toggle('open'); });
+    document.addEventListener('click', e => { if (window.innerWidth <= 1024 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) sidebar.classList.remove('open'); });
+    sidebar.addEventListener('click', e => e.stopPropagation());
+}
+
+// Helpers
+function formatViews(n) {
+    if (!n) return '';
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/,'') + 'M views';
+    if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/,'') + 'K views';
+    return n + ' views';
+}
+function formatDuration(s) {
+    if (!s) return '';
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    return `${m}:${String(sec).padStart(2,'0')}`;
+}
+function getRelativeDate(dateStr) {
+    const d = new Date(dateStr), now = new Date();
+    const days = Math.floor((now - d) / 86400000);
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return `${days} days ago`;
+    return d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
+function groupByDate(items) {
+    const g = {};
+    for (const item of items) {
+        const label = getRelativeDate(item.watched_at);
+        if (!g[label]) g[label] = [];
+        g[label].push(item);
+    }
+    return g;
+}
+
+// Render
+function renderHistory(items) {
+    const container = document.getElementById('historyContent');
+    const countEl = document.getElementById('historyCount');
+    const clearBtn = document.getElementById('clearHistoryBtn');
+
+    if (!items || items.length === 0) {
+        countEl.textContent = '';
+        clearBtn.style.display = 'none';
+        container.innerHTML = `
+            <div class="state-container">
+                <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <div class="state-title">No watch history yet</div>
+                <div class="state-sub">Videos you watch will appear here so you can easily find them again.</div>
+                <a href="index.html" class="btn btn-primary" style="margin-top:8px;">Browse videos</a>
+            </div>`;
+        return;
+    }
+
+    countEl.textContent = `${items.length} video${items.length !== 1 ? 's' : ''}`;
+    clearBtn.style.display = 'flex';
+
+    const groups = groupByDate(items);
+    let html = '';
+    for (const [label, groupItems] of Object.entries(groups)) {
+        html += `<div class="date-group"><div class="date-label">${label}</div><div class="video-list">`;
+        for (const item of groupItems) {
+            const v = item.videos || {};
+            const thumb = v.thumbnail_url
+                ? `<img src="${v.thumbnail_url}" alt="${v.title || ''}" loading="lazy">`
+                : `<div class="thumbnail-placeholder"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>`;
+            const duration = v.duration ? `<span class="duration-badge">${formatDuration(v.duration)}</span>` : '';
+            const progress = item.progress_seconds && v.duration
+                ? `<div class="progress-bar" style="width:${Math.min(100,(item.progress_seconds/v.duration)*100)}%"></div>`
+                : '';
+            const views = v.views ? `<span class="meta-dot"></span><span>${formatViews(v.views)}</span>` : '';
+            const channel = v.uploader_username ? `<span class="video-channel">${v.uploader_username}</span><span class="meta-dot"></span>` : '';
+            html += `
+                <a class="video-item" href="watch.html?video_id=${v.id || ''}" data-history-id="${item.id}">
+                    <div class="thumbnail-wrap">${thumb}${duration}${progress}</div>
+                    <div class="video-info">
+                        <div class="video-title">${v.title || 'Untitled video'}</div>
+                        <div class="video-meta">${channel}${views}</div>
+                    </div>
+                    <button class="remove-btn" title="Remove from history" data-history-id="${item.id}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </a>`;
+        }
+        html += `</div></div>`;
+    }
+    container.innerHTML = html;
+
+    container.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', async e => {
+            e.preventDefault();
+            e.stopPropagation();
+            await removeHistoryItem(btn.dataset.historyId);
+        });
+    });
+}
+
+function renderNotLoggedIn() {
+    document.getElementById('historyCount').textContent = '';
+    document.getElementById('clearHistoryBtn').style.display = 'none';
+    document.getElementById('historyContent').innerHTML = `
+        <div class="state-container">
+            <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <div class="state-title">Sign in to see your history</div>
+            <div class="state-sub">Keep track of what you watch by signing in to your Codara account.</div>
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <a href="login.html" class="btn btn-secondary">Log in</a>
+                <a href="login.html?mode=signup" class="btn btn-primary">Sign up</a>
+            </div>
+        </div>`;
+}
+
+// Data
+let currentUserId = null;
+let allHistory = [];
+
+async function loadHistory(userId) {
+    const { data, error } = await supabase
+        .from('watch_history')
+        .select(`id, watched_at, progress_seconds, videos (id, title, thumbnail_url, duration, views, uploader_username)`)
+        .eq('user_id', userId)
+        .order('watched_at', { ascending: false });
+    if (error) { console.error('Error loading history:', error); renderHistory([]); return; }
+    allHistory = data || [];
+    renderHistory(allHistory);
+}
+
+async function removeHistoryItem(id) {
+    const { error } = await supabase.from('watch_history').delete().eq('id', id).eq('user_id', currentUserId);
+    if (!error) { allHistory = allHistory.filter(i => i.id != id); renderHistory(allHistory); }
+}
+
+async function clearAllHistory() {
+    if (!confirm('Remove all videos from your watch history?')) return;
+    const { error } = await supabase.from('watch_history').delete().eq('user_id', currentUserId);
+    if (!error) { allHistory = []; renderHistory([]); }
+}
+
+document.getElementById('historySearch')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase().trim();
+    if (!q) { renderHistory(allHistory); return; }
+    const filtered = allHistory.filter(item => {
+        const title = (item.videos?.title || '').toLowerCase();
+        const channel = (item.videos?.uploader_username || '').toLowerCase();
+        return title.includes(q) || channel.includes(q);
+    });
+    renderHistory(filtered);
+});
+
+document.getElementById('clearHistoryBtn')?.addEventListener('click', clearAllHistory);
+
+// Init
+async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        showLoggedInState(session.user);
+        currentUserId = session.user.id;
+        await loadHistory(session.user.id);
+    } else {
+        showLoggedOutState();
+        renderNotLoggedIn();
+    }
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            showLoggedInState(session.user);
+            currentUserId = session.user.id;
+            await loadHistory(session.user.id);
+        }
+        if (event === 'SIGNED_OUT') {
+            currentUserId = null; allHistory = [];
+            showLoggedOutState();
+            renderNotLoggedIn();
+        }
+    });
+}
+init();
+</script>
+</body>
+</html>

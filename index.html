@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Codara</title>
+    <link rel="icon" href="assets/hamico.png" type="image/x-icon" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #ffffff; overflow-x: hidden; }
+
+.sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 240px; background: #131313; border-right: 1px solid #1f1f1f; padding: 20px 12px 20px; overflow-y: auto; z-index: 150; transition: transform 0.3s ease; }
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-section-title { padding: 8px 16px; font-size: 12px; font-weight: 600; color: #6b6b6b; text-transform: uppercase; letter-spacing: 0.5px; }
+.sidebar-item { display: flex; align-items: center; gap: 16px; padding: 12px 16px; color: #b0b0b0; text-decoration: none; border-radius: 8px; transition: all 0.2s; cursor: pointer; margin-bottom: 4px; }
+.sidebar-item:hover { background: #1f1f1f; color: #ffffff; }
+.sidebar-item.active { background: #001f3f; color: #ffffff; }
+.sidebar-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+.sidebar-item-text { font-size: 14px; font-weight: 500; }
+.sidebar-divider { height: 1px; background: #1f1f1f; margin: 12px 0; }
+.sidebar-toggle { background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; padding: 10px; cursor: pointer; display: none; transition: all 0.2s; flex-shrink: 0; }
+.sidebar-toggle:hover { background: #2a2a2a; }
+.sidebar-toggle svg { width: 20px; height: 20px; color: #ffffff; }
+.sidebar .logo { display: flex; align-items: center; gap: 10px; font-size: 34px; font-weight: 800; padding: 10px 12px; color: #ffffff; text-decoration: none; border-radius: 8px; margin-bottom: 12px; }
+.sidebar .logo .logo-icon { width: 56px; height: 56px; border-radius: 8px; background: url('assets/hamico.png') center/contain no-repeat; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+.sidebar .logo:hover { background: rgba(0, 31, 63, 0.09); }
+
+.social-bar { position: fixed; right: 16px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 140; }
+.social-bar a { width: 42px; height: 42px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; transition: transform 0.2s, background 0.2s; }
+.social-bar a:hover { transform: translateY(-2px); background: rgba(255,255,255,0.14); }
+@media (max-width: 1024px) { .social-bar { display: none; } }
+
+.navbar { background: #131313; padding: 16px 40px 16px 280px; display: flex; align-items: center; justify-content: flex-end; gap: 32px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #1f1f1f; }
+.logo { display: none; }
+.logo-icon { width: 48px; height: 48px; background: url('assets/hamico.png') center/contain no-repeat; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; }
+.logo-icon::before { content: ''; }
+.search-container { position: absolute; left: 50%; transform: translateX(-50%) translateX(-120px); width: 100%; max-width: 700px; padding: 0 20px; }
+.search-icon { position: absolute; left: 36px; top: 50%; transform: translateY(-50%); color: #6b6b6b; pointer-events: none; }
+.search-input { width: 100%; padding: 10px 16px 10px 44px; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; color: #ffffff; font-size: 14px; transition: all 0.2s; }
+.search-input:focus { outline: none; border-color: #001f3f; background: #252525; }
+.search-input::placeholder { color: #6b6b6b; }
+.navbar::before { content: ''; flex: 1; }
+.nav-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; position: relative; z-index: 10; }
+.btn { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+.btn-secondary { background: transparent; color: #ffffff; border: 1px solid #3a3a3a; }
+.btn-secondary:hover { background: #1f1f1f; }
+.btn-primary { background: linear-gradient(135deg, #001f3f 0%, #000000 100%); color: white; }
+.btn-primary:hover { background: linear-gradient(135deg, #001f3f 0%, #000000 100%); transform: translateY(-1px); }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #001f3f 0%, #000000 100%); cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; transition: transform 0.2s; overflow: hidden; }
+.user-avatar:hover { transform: scale(1.05); }
+.user-menu { position: relative; }
+.dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 8px; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s; z-index: 1000; }
+.dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+.dropdown-item { padding: 12px 16px; color: #b0b0b0; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: all 0.2s; cursor: pointer; border: none; background: transparent; width: 100%; text-align: left; font-size: 14px; font-family: inherit; }
+.dropdown-item:hover { background: #2a2a2a; color: #ffffff; }
+.dropdown-divider { height: 1px; background: #2a2a2a; margin: 4px 0; }
+
+.main-content { margin-left: 240px; transition: margin-left 0.3s ease; }
+
+.subjects-section { padding: 32px 40px 0; }
+.subjects-scroll-wrapper { position: relative; }
+.subjects-row { display: flex; gap: 16px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 8px; scrollbar-width: none; -ms-overflow-style: none; }
+.subjects-row::-webkit-scrollbar { display: none; }
+.scroll-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; background: #1f1f1f; border: 1px solid #2a2a2a; border-radius: 50%; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s; user-select: none; }
+.scroll-arrow:hover { background: #2a2a2a; border-color: #001f3f; }
+.scroll-arrow.left { left: -20px; }
+.scroll-arrow.right { right: -20px; }
+.subject-card { flex-shrink: 0; width: 220px; height: 130px; border-radius: 16px; position: relative; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s; }
+.subject-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+.subject-card.active { border-color: #001f3f; box-shadow: 0 0 0 1px #001f3f, 0 12px 32px rgba(0,31,63,0.3); }
+.card-bg-img { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.4s ease, filter 0.3s; filter: brightness(0.5); }
+.subject-card:hover .card-bg-img { transform: scale(1.08); filter: brightness(0.25); }
+.card-gradient { position: absolute; inset: 0; background: linear-gradient(170deg, transparent 20%, rgba(0,0,0,0.8) 100%); }
+.card-idle-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 14px 16px; transition: opacity 0.3s; }
+.subject-card:hover .card-idle-content { opacity: 0; pointer-events: none; }
+.card-emoji { font-size: 24px; margin-bottom: 4px; }
+.card-title { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.2; }
+.card-hover-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; text-align: center; opacity: 0; transition: opacity 0.3s; }
+.subject-card:hover .card-hover-content { opacity: 1; }
+.card-hover-emoji { font-size: 26px; margin-bottom: 6px; }
+.card-hover-title { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 5px; }
+.card-hover-desc { font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+.subject-card.all-card { background: #1a1a1a; border: 2px dashed #333; }
+.subject-card.all-card.active { border-style: solid; border-color: #001f3f; }
+.subject-card.all-card:hover { background: #222; }
+.all-card .card-bg-img, .all-card .card-gradient { display: none; }
+
+.trending-section { padding: 32px 40px 60px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+.section-title { display: flex; align-items: center; gap: 12px; font-size: 28px; font-weight: 700; }
+.trending-icon { color: #001f3f; font-size: 24px; }
+
+#videoGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px 16px; }
+.video-card { cursor: pointer; transition: transform 0.2s ease; background: transparent; border-radius: 0; overflow: visible; border: none; }
+.video-card:hover { transform: translateY(-2px); }
+.thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #202020; margin-bottom: 12px; }
+.video-thumbnail { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease; background: #1f1f1f; display: block; }
+.video-card:hover .video-thumbnail { transform: scale(1.05); }
+.card-menu-btn { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); border: none; border-radius: 50%; color: white; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 0.2s ease; z-index: 10; line-height: 1; padding: 0; }
+.thumbnail-wrapper:hover .card-menu-btn { opacity: 1; }
+.card-menu-btn:hover { background: rgba(0,0,0,0.95); transform: scale(1.1); }
+.yt-badge { position: absolute; bottom: 8px; left: 8px; background: rgba(255,0,0,0.9); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.3px; display: flex; align-items: center; gap: 4px; }
+.yt-badge svg { width: 10px; height: 10px; }
+.video-meta-row { display: flex; gap: 12px; padding: 0 4px; }
+.video-avatar-wrap { flex-shrink: 0; }
+.video-avatar-initial { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #001f3f 0%, #000000 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; overflow: hidden; }
+.video-text { flex: 1; min-width: 0; margin-top: -2px; }
+.video-title { font-size: 14px; font-weight: 600; line-height: 1.4; color: #f1f1f1; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; max-height: 2.8em; }
+.paid-content-title { color: #f5c228; }
+.video-submeta { font-size: 12px; color: #aaa; line-height: 1.5; display: flex; flex-wrap: wrap; gap: 4px; }
+.uploader-name { color: #aaa; font-weight: 500; }
+.uploader-name:hover { color: #fff; }
+.video-stats { color: #aaa; }
+.card-menu-popup { background: #282828; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.6); overflow: hidden; min-width: 160px; animation: menuFadeIn 0.15s ease; }
+@keyframes menuFadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.card-menu { padding: 8px 0; }
+.card-menu-item { width: 100%; padding: 10px 16px; background: transparent; border: none; color: #f1f1f1; font-size: 14px; text-align: left; cursor: pointer; transition: background 0.15s ease; display: flex; align-items: center; gap: 12px; font-family: inherit; }
+.card-menu-item:hover { background: #3f3f3f; }
+.video-card:hover .video-title { color: #fff; }
+.video-card:hover .uploader-name { color: #fff; }
+.empty-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: #aaa; }
+.empty-state h3 { color: #f1f1f1; font-size: 20px; margin-bottom: 8px; font-weight: 600; }
+.empty-state p { color: #aaa; font-size: 14px; }
+.empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.3; }
+.loading-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; }
+.loading-spinner { width: 48px; height: 48px; border: 4px solid #1f1f1f; border-top-color: #001f3f; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Modal ── */
+.modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; padding: 20px; }
+.modal-backdrop.show { opacity: 1; visibility: visible; }
+.upload-modal { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative; transform: scale(0.9) translateY(16px); opacity: 0; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease; box-shadow: 0 24px 64px rgba(0,0,0,0.7); }
+.upload-modal::-webkit-scrollbar { width: 6px; }
+.upload-modal::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+.modal-backdrop.show .upload-modal { transform: scale(1) translateY(0); opacity: 1; }
+.modal-header { padding: 24px 28px; border-bottom: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 20px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 10px; }
+.modal-close { background: transparent; border: none; color: #6b6b6b; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s; }
+.modal-close:hover { background: #2a2a2a; color: #ffffff; }
+.modal-body { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-label { font-size: 13px; font-weight: 600; color: #ffffff; }
+.form-label .required { color: #ef4444; margin-left: 3px; }
+.form-label .optional { color: #6b6b6b; font-weight: 400; margin-left: 4px; font-size: 12px; }
+.form-input { width: 100%; padding: 12px 16px; background: #0f0f0f; border: 2px solid #2a2a2a; border-radius: 10px; color: #ffffff; font-size: 14px; transition: all 0.2s; font-family: inherit; }
+.form-input:focus { outline: none; border-color: #001f3f; background: #151515; }
+.form-input::placeholder { color: #555; }
+.form-input.error { border-color: #ef4444; }
+
+/* URL preview box */
+.url-preview { display: none; background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; }
+.url-preview.show { display: block; }
+.url-preview-inner { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+.url-preview-thumb { width: 80px; height: 45px; border-radius: 6px; object-fit: cover; background: #1f1f1f; flex-shrink: 0; }
+.url-preview-info { flex: 1; min-width: 0; }
+.url-preview-title { font-size: 13px; font-weight: 600; color: #f1f1f1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.url-preview-channel { font-size: 12px; color: #aaa; margin-top: 2px; }
+.url-preview-valid { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #10b981; margin-top: 4px; }
+
+.char-counter { text-align: right; font-size: 12px; color: #555; }
+.char-counter.warning { color: #f59e0b; }
+
+.subject-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.subject-pill { display: flex; align-items: center; gap: 7px; padding: 8px 14px; background: #0f0f0f; border: 2px solid #2a2a2a; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: #aaa; transition: all 0.2s; }
+.subject-pill:hover { border-color: #555; color: #fff; }
+.subject-pill.selected { border-color: #001f3f; background: rgba(0,31,63,0.15); color: #fff; }
+.sp-emoji { font-size: 15px; }
+
+.status-message { display: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; }
+.status-message.show { display: block; }
+.status-message.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; }
+.status-message.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+
+.modal-footer { padding: 20px 28px; border-top: 1px solid #2a2a2a; display: flex; gap: 10px; justify-content: flex-end; }
+.btn-cancel { padding: 11px 24px; background: transparent; border: 1px solid #3a3a3a; border-radius: 8px; color: #ffffff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+.btn-cancel:hover:not(:disabled) { background: #1f1f1f; }
+.btn-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-submit { padding: 11px 28px; background: linear-gradient(135deg, #001f3f 0%, #000000 100%); border: none; border-radius: 8px; color: #ffffff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
+.btn-submit:hover:not(:disabled) { transform: translateY(-1px); opacity: 0.9; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+.btn-submit.loading .btn-spinner { display: block; }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-toggle { display: block; }
+    .navbar { padding: 16px 20px; justify-content: flex-start; gap: 12px; }
+    .search-container { position: relative; left: auto; transform: none; flex: 1; max-width: none; padding: 0; margin-left: 0; }
+    .search-icon { left: 16px; }
+    .navbar::before { display: none; }
+    .main-content { margin-left: 0; }
+    #videoGrid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px 10px; }
+}
+@media (max-width: 768px) {
+    .navbar { padding: 12px 16px; }
+    .subjects-section { padding: 24px 16px 0; }
+    .trending-section { padding: 24px 16px 40px; }
+    #videoGrid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px 8px; }
+    .modal-footer { flex-direction: column; }
+    .btn-cancel, .btn-submit { width: 100%; justify-content: center; }
+}
+@media (max-width: 640px) {
+    #videoGrid { grid-template-columns: 1fr; gap: 16px; }
+}
+html { overflow-y: scroll !important; scrollbar-width: auto !important; scrollbar-color: #2a2a2a #0a0a0a !important; }
+body { overflow-x: hidden; }
+::-webkit-scrollbar { width: 12px !important; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <a href="index.html" class="logo" aria-label="Codara home">
+        <div class="logo-icon" aria-hidden="true"></div>
+        Codara
+    </a>
+    <div class="sidebar-section">
+        <a href="index.html" class="sidebar-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span class="sidebar-item-text">Home</span>
+        </a>
+        <a href="#" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <span class="sidebar-item-text">Trending</span>
+        </a>
+        <a href="subs.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span class="sidebar-item-text">Subscriptions</span>
+        </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Library</div>
+        <a href="history.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span class="sidebar-item-text">History</span>
+        </a>
+        <a href="yourvideos.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span class="sidebar-item-text">Your Videos</span>
+        </a>
+        <a href="like.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span class="sidebar-item-text">Liked Videos</span>
+        </a>
+        <a href="tools.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+            <span class="sidebar-item-text">Toolbox</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Submit YouTube Video Modal -->
+<div class="modal-backdrop" id="uploadModalBackdrop">
+    <div class="upload-modal">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"></path><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"></polygon></svg>
+                Share a YouTube Video
+            </h2>
+            <button class="modal-close" id="modalCloseBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="status-message" id="statusMessage"></div>
+
+            <!-- Subject picker -->
+            <div class="form-group">
+                <label class="form-label">Subject <span class="required">*</span></label>
+                <div class="subject-picker" id="subjectPicker"></div>
+                <div style="color:#ef4444;font-size:12px;margin-top:4px;display:none;" id="subjectRequiredNote">Please select a subject.</div>
+            </div>
+
+            <!-- YouTube URL -->
+            <div class="form-group">
+                <label class="form-label">YouTube URL <span class="required">*</span></label>
+                <input
+                    type="url"
+                    class="form-input"
+                    id="youtubeUrlInput"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+                <!-- Preview -->
+                <div class="url-preview" id="urlPreview">
+                    <div class="url-preview-inner">
+                        <img class="url-preview-thumb" id="previewThumb" src="" alt="">
+                        <div class="url-preview-info">
+                            <div class="url-preview-title" id="previewTitle">—</div>
+                            <div class="url-preview-channel" id="previewChannel">—</div>
+                            <div class="url-preview-valid">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Valid YouTube video
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="form-group">
+                <label class="form-label" for="titleInput">
+                    Title <span class="optional">(auto-filled from YouTube, editable)</span>
+                </label>
+                <input type="text" id="titleInput" class="form-input" placeholder="Video title..." maxlength="100">
+                <div class="char-counter" id="charCounter">0 / 100</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" id="cancelBtn">Cancel</button>
+            <button class="btn-submit" id="submitBtn" disabled>
+                <div class="btn-spinner"></div>
+                <span id="submitBtnText">Share Video</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <nav class="navbar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search videos...">
+        </div>
+        <div class="nav-right" id="navRight"></div>
+    </nav>
+
+    <!-- Ad slot: Top banner -->
+    <div style="width:100%; display:flex; justify-content:center; margin: 18px 0;">
+        <script src="https://pl28581525.effectivegatecpm.com/74/0e/8a/740e8a8d15d4dc2ab86673d6fc3d5cc1.js"></script>
+        <script>
+          atOptions = {
+            'key' : '715f190b1bb2c47ade50eff76d830803',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+        </script>
+        <script src="https://www.highperformanceformat.com/715f190b1bb2c47ade50eff76d830803/invoke.js"></script>
+    </div>
+
+    <div class="subjects-section">
+        <div class="subjects-scroll-wrapper">
+            <button class="scroll-arrow left" id="scrollLeft">&#8249;</button>
+            <div class="subjects-row" id="subjectsRow"></div>
+            <button class="scroll-arrow right" id="scrollRight">&#8250;</button>
+        </div>
+    </div>
+
+    <section class="trending-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="trending-icon">📈</span>
+                <span id="sectionTitleText">Trending Now</span>
+            </h2>
+        </div>
+        <div id="videoGrid">
+            <div class="loading-state"><div class="loading-spinner"></div><p>Loading videos...</p></div>
+        </div>
+    </section>
+</div>
+
+<script type="module">
+const SUPABASE_URL  = 'https://ajfabbkuwlpgjzmavwmn.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqZmFiYmt1d2xwZ2p6bWF2d21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyOTQzNjcsImV4cCI6MjA1Mjg3MDM2N30.jtJtQ5yVELnl37oYM0SoYN82JMvlOw-3rlEBH7VN9uA';
+const MAX_TITLE     = 100;
+
+const SUBJECTS = [
+    { id: 'math',     label: 'Mathematics', emoji: '➕', bg: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=500&q=80', desc: 'Algebra, geometry, calculus and problem solving' },
+    { id: 'science',  label: 'Science',      emoji: '🔬', bg: 'https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=500&q=80', desc: 'Physics, chemistry, biology — how the world works' },
+    { id: 'career',   label: 'Career',       emoji: '💼', bg: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=500&q=80', desc: 'Career advice, job skills and professional growth' },
+    { id: 'computer', label: 'Coding',       emoji: '💻', bg: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=500&q=80', desc: 'Programming, algorithms and software development' },
+    { id: 'all',      label: 'All',          emoji: '✨', bg: '', desc: 'Browse every video across all subjects' },
+];
+
+// ── State ──────────────────────────────────────────────
+let allVideos = [];
+let activeSubject = 'all';
+let selectedSubject = null;
+let currentUser = null;
+let extractedYtId = null;
+let activeMenu = null;
+let dropdownListenerSet = false;
+
+// ── Helpers ────────────────────────────────────────────
+const qid = id => document.getElementById(id);
+
+function initials(t) { return t?.trim().charAt(0).toUpperCase() || 'U'; }
+function displayName(u) {
+    if (u.user_metadata?.full_name) return u.user_metadata.full_name;
+    if (u.user_metadata?.name) return u.user_metadata.name;
+    if (u.email) { const n = u.email.split('@')[0]; return n.charAt(0).toUpperCase() + n.slice(1); }
+    return 'User';
+}
+function formatTimeAgo(d) {
+    if (!d) return 'just now';
+    const s = Math.floor((Date.now() - new Date(d)) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return `${Math.floor(s/60)} min ago`;
+    if (s < 86400) return `${Math.floor(s/3600)} hr ago`;
+    if (s < 2592000) return `${Math.floor(s/86400)} days ago`;
+    if (s < 31536000) return `${Math.floor(s/2592000)} mo ago`;
+    return `${Math.floor(s/31536000)} yr ago`;
+}
+function formatViews(n=0) {
+    if (n < 1000) return `${n} views`;
+    if (n < 1e6) return `${(n/1e3).toFixed(1)}K views`;
+    return `${(n/1e6).toFixed(1)}M views`;
+}
+function score(v) {
+    const views = Number(v.views || 0);
+    const hrs = Math.max(0, (Date.now() - new Date(v.created_at)) / 36e5);
+    return views + (1 / (hrs + 1)) * 500;
+}
+
+// ── YouTube helpers ────────────────────────────────────
+function extractYtId(url) {
+    if (!url) return null;
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url.trim())) return url.trim();
+    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+}
+function ytThumb(id) { return `https://img.youtube.com/vi/${id}/hqdefault.jpg`; }
+function ytEmbed(id) { return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`; }
+
+// Fetch oEmbed title + author from YouTube (no API key needed)
+async function fetchYtMeta(id) {
+    try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch { return null; }
+}
+
+// ── URL input handler ──────────────────────────────────
+let urlDebounce;
+qid('youtubeUrlInput').addEventListener('input', e => {
+    clearTimeout(urlDebounce);
+    const val = e.target.value.trim();
+    const id = extractYtId(val);
+    if (!id) {
+        extractedYtId = null;
+        qid('urlPreview').classList.remove('show');
+        qid('submitBtn').disabled = true;
+        e.target.classList.remove('error');
+        return;
+    }
+    extractedYtId = id;
+    // Show thumbnail immediately
+    qid('previewThumb').src = ytThumb(id);
+    qid('previewTitle').textContent = 'Fetching title…';
+    qid('previewChannel').textContent = '';
+    qid('urlPreview').classList.add('show');
+    e.target.classList.remove('error');
+
+    urlDebounce = setTimeout(async () => {
+        const meta = await fetchYtMeta(id);
+        if (meta) {
+            qid('previewTitle').textContent = meta.title || '—';
+            qid('previewChannel').textContent = meta.author_name || '';
+            // Auto-fill title if empty
+            const titleEl = qid('titleInput');
+            if (!titleEl.value.trim()) {
+                titleEl.value = (meta.title || '').slice(0, MAX_TITLE);
+                updateCharCounter();
+            }
+        } else {
+            qid('previewTitle').textContent = 'Could not fetch title';
+        }
+        updateSubmitBtn();
+    }, 600);
+    updateSubmitBtn();
+});
+
+function updateCharCounter() {
+    const len = qid('titleInput').value.length;
+    const el = qid('charCounter');
+    el.textContent = `${len} / ${MAX_TITLE}`;
+    el.classList.toggle('warning', len > MAX_TITLE * 0.85);
+}
+qid('titleInput').addEventListener('input', () => { updateCharCounter(); updateSubmitBtn(); });
+
+function updateSubmitBtn() {
+    const hasId = !!extractedYtId;
+    const hasTitle = !!qid('titleInput').value.trim();
+    const hasSub = !!selectedSubject;
+    qid('submitBtn').disabled = !(hasId && hasTitle && hasSub);
+}
+
+// ── Subject picker ─────────────────────────────────────
+function renderSubjectPicker() {
+    const el = qid('subjectPicker');
+    el.innerHTML = '';
+    SUBJECTS.filter(s => s.id !== 'all').forEach(s => {
+        const pill = document.createElement('div');
+        pill.className = 'subject-pill' + (selectedSubject === s.id ? ' selected' : '');
+        pill.innerHTML = `<span class="sp-emoji">${s.emoji}</span> ${s.label}`;
+        pill.addEventListener('click', () => {
+            selectedSubject = s.id;
+            qid('subjectRequiredNote').style.display = 'none';
+            renderSubjectPicker();
+            updateSubmitBtn();
+        });
+        el.appendChild(pill);
+    });
+}
+
+// ── Submit ─────────────────────────────────────────────
+qid('submitBtn').addEventListener('click', async () => {
+    if (!selectedSubject) { qid('subjectRequiredNote').style.display = 'block'; return; }
+    if (!extractedYtId) { showStatus('Please enter a valid YouTube URL', 'error'); return; }
+    const title = qid('titleInput').value.trim();
+    if (!title) { showStatus('Title is required', 'error'); return; }
+    if (!currentUser) { showStatus('You must be logged in', 'error'); return; }
+
+    const btn = qid('submitBtn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    qid('submitBtnText').textContent = 'Sharing…';
+    qid('cancelBtn').disabled = true;
+    hideStatus();
+
+    try {
+        const { supabase } = await import('./JS/supabase.js');
+
+        const ytId = extractedYtId;
+        const thumbUrl = ytThumb(ytId);
+        const youtubeUrl = `https://www.youtube.com/watch?v=${ytId}`;
+
+        const { error } = await supabase.from('videos').insert({
+            title,
+            subject: selectedSubject,
+            youtube_url: youtubeUrl,
+            youtube_id: ytId,
+            thumbnail_url: thumbUrl,
+            // Keep video_url as the youtube URL for backward compat with watch.html
+            video_url: youtubeUrl,
+            user_id: currentUser.id,
+            uploader_username: displayName(currentUser),
+            uploader_avatar: currentUser.user_metadata?.avatar_url || null,
+            views: 0,
+            likes: 0,
+            dislikes: 0,
+        });
+
+        if (error) throw error;
+
+        showStatus('Video shared successfully! 🎉', 'success');
+        qid('submitBtnText').textContent = 'Shared!';
+        setTimeout(() => { closeModal(); loadVideos(); }, 1200);
+
+    } catch (err) {
+        console.error(err);
+        showStatus(err.message || 'Failed to share video', 'error');
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        qid('submitBtnText').textContent = 'Share Video';
+        qid('cancelBtn').disabled = false;
+    }
+});
+
+function showStatus(msg, type) {
+    const el = qid('statusMessage');
+    el.textContent = msg;
+    el.className = `status-message show ${type}`;
+}
+function hideStatus() {
+    qid('statusMessage').className = 'status-message';
+}
+
+// ── Modal open/close ───────────────────────────────────
+function openModal() {
+    selectedSubject = null;
+    extractedYtId = null;
+    renderSubjectPicker();
+    qid('youtubeUrlInput').value = '';
+    qid('titleInput').value = '';
+    qid('urlPreview').classList.remove('show');
+    qid('charCounter').textContent = `0 / ${MAX_TITLE}`;
+    qid('submitBtn').disabled = true;
+    qid('submitBtnText').textContent = 'Share Video';
+    qid('submitBtn').classList.remove('loading');
+    qid('cancelBtn').disabled = false;
+    hideStatus();
+    qid('uploadModalBackdrop').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => qid('youtubeUrlInput').focus(), 300);
+}
+function closeModal() {
+    qid('uploadModalBackdrop').classList.remove('show');
+    document.body.style.overflow = '';
+}
+qid('modalCloseBtn').addEventListener('click', closeModal);
+qid('cancelBtn').addEventListener('click', closeModal);
+qid('uploadModalBackdrop').addEventListener('click', e => { if (e.target === qid('uploadModalBackdrop')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Video cards ────────────────────────────────────────
+let activeMenu2 = null;
+function closeMenu() {
+    if (activeMenu2) { activeMenu2.remove(); activeMenu2 = null; document.removeEventListener('click', onDocClick); }
+}
+function onDocClick(e) { if (!activeMenu2?.contains(e.target)) closeMenu(); }
+
+function createVideoCard(video) {
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.addEventListener('click', () => { window.location.href = `watch.html?video_id=${video.id}`; });
+
+    const ytId = video.youtube_id || extractYtId(video.youtube_url || video.video_url || '');
+    const thumb = ytId ? ytThumb(ytId) : (video.thumbnail_url || '');
+    const title = (video.title || 'Untitled').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const username = video.uploader_username || 'Unknown';
+    const avatarHTML = video.uploader_avatar
+        ? `<img src="${video.uploader_avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="">`
+        : initials(username);
+
+    card.innerHTML = `
+        <div class="thumbnail-wrapper">
+            <img class="video-thumbnail" src="${thumb}" alt="${title}" loading="lazy">
+            <div class="yt-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+                YouTube
+            </div>
+            <button class="card-menu-btn" aria-label="More options">⋮</button>
+        </div>
+        <div class="video-meta-row">
+            <div class="video-avatar-wrap">
+                <div class="video-avatar-initial">${avatarHTML}</div>
+            </div>
+            <div class="video-text">
+                <div class="video-title">${title}</div>
+                <div class="video-submeta">
+                    <span class="uploader-name">${username}</span>
+                    •
+                    <span class="video-stats">${formatViews(video.views || 0)} • ${formatTimeAgo(video.created_at)}</span>
+                </div>
+            </div>
+        </div>`;
+
+    const menuBtn = card.querySelector('.card-menu-btn');
+    menuBtn.addEventListener('click', async e => {
+        e.stopPropagation();
+        closeMenu();
+        const isOwner = currentUser && currentUser.id === video.user_id;
+        const menuHTML = `<div class="card-menu">
+            <button class="card-menu-item" id="cm-open">Open on YouTube</button>
+            ${isOwner ? `<button class="card-menu-item" id="cm-delete" style="color:#ef4444;">Delete</button>` : `<button class="card-menu-item" id="cm-report">Report</button>`}
+        </div>`;
+        const popup = document.createElement('div');
+        popup.className = 'card-menu-popup';
+        popup.innerHTML = menuHTML;
+        const rect = menuBtn.getBoundingClientRect();
+        popup.style.cssText = `position:fixed;top:${rect.bottom+6}px;left:${Math.min(rect.right-160, window.innerWidth-170)}px;z-index:9999;`;
+        document.body.appendChild(popup);
+        activeMenu2 = popup;
+        setTimeout(() => document.addEventListener('click', onDocClick), 0);
+
+        popup.querySelector('#cm-open')?.addEventListener('click', ev => {
+            ev.stopPropagation(); closeMenu();
+            const ytId2 = video.youtube_id || extractYtId(video.youtube_url || video.video_url || '');
+            if (ytId2) window.open(`https://www.youtube.com/watch?v=${ytId2}`, '_blank');
+        });
+        popup.querySelector('#cm-delete')?.addEventListener('click', async ev => {
+            ev.stopPropagation(); closeMenu();
+            if (!confirm('Delete this video from Codara?')) return;
+            const { supabase } = await import('./JS/supabase.js');
+            await supabase.from('videos').delete().eq('id', video.id);
+            loadVideos();
+        });
+        popup.querySelector('#cm-report')?.addEventListener('click', async ev => {
+            ev.stopPropagation(); closeMenu();
+            const reason = prompt('Report this video — brief reason:');
+            if (!reason) return;
+            const { supabase } = await import('./JS/supabase.js');
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) { alert('Please log in to report'); return; }
+            await supabase.from('reports').insert({ video_id: video.id, reporter_id: session.user.id, reason });
+            alert('Report submitted. Thank you.');
+        });
+    });
+
+    return card;
+}
+
+function createPaidContentCard() {
+    const card = document.createElement('div');
+    card.className = 'video-card';
+
+    card.innerHTML = `
+        <div class="thumbnail-wrapper" style="background:#0f0f0f; display:flex;align-items:center;justify-content:center;">
+            <div class="paid-ad-container" style="width:100%;max-width:320px;height:50px;"></div>
+        </div>
+        <div class="video-meta-row">
+            <div class="video-avatar-wrap">
+                <div class="video-avatar-initial" style="background:#f5c228;color:#000;">💰</div>
+            </div>
+            <div class="video-text">
+                <div class="video-title paid-content-title">Paid Content</div>
+                <div class="video-submeta">
+                    <span class="uploader-name">Sponsored</span>
+                </div>
+            </div>
+        </div>`;
+
+    const container = card.querySelector('.paid-ad-container');
+    if (container) {
+        const opts = document.createElement('script');
+        opts.textContent = `atOptions = {\n  'key' : 'dfa573d785fe2d3f09e7a6dd4d07211b',\n  'format' : 'iframe',\n  'height' : 50,\n  'width' : 320,\n  'params' : {}\n};`;
+        const script = document.createElement('script');
+        script.src = 'https://www.highperformanceformat.com/dfa573d785fe2d3f09e7a6dd4d07211b/invoke.js';
+        container.appendChild(opts);
+        container.appendChild(script);
+    }
+
+    return card;
+}
+
+function renderVideos(videos) {
+    const grid = qid('videoGrid');
+    grid.innerHTML = '';
+    if (!videos?.length) {
+        grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><h3>No videos found</h3><p>Be the first to share a video for this subject.</p></div>`;
+        return;
+    }
+
+    // Insert a paid content card after the first video
+    grid.appendChild(createVideoCard(videos[0]));
+    grid.appendChild(createPaidContentCard());
+    videos.slice(1).forEach(v => grid.appendChild(createVideoCard(v)));
+}
+
+// ── Load videos ────────────────────────────────────────
+async function loadVideos() {
+    qid('videoGrid').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><p>Loading videos...</p></div>';
+    try {
+        const { supabase } = await import('./JS/supabase.js');
+        const { data, error } = await supabase.from('videos').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        allVideos = (data || []).sort((a, b) => score(b) - score(a));
+        const pool = activeSubject === 'all' ? allVideos : allVideos.filter(v => v.subject === activeSubject);
+        renderVideos(pool);
+    } catch (err) {
+        console.error(err);
+        qid('videoGrid').innerHTML = `<div class="empty-state"><h3>Error loading videos</h3><p>${err.message}</p></div>`;
+    }
+}
+
+// ── Subject cards ──────────────────────────────────────
+function renderSubjectCards() {
+    const row = qid('subjectsRow');
+    row.innerHTML = '';
+    SUBJECTS.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'subject-card' + (s.id === 'all' ? ' all-card' : '') + (activeSubject === s.id ? ' active' : '');
+        if (s.id === 'all') {
+            card.innerHTML = `<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;"><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:4px;"><div style="width:18px;height:18px;border-radius:4px;background:#f59e0b;"></div><div style="width:18px;height:18px;border-radius:4px;background:#10b981;"></div><div style="width:18px;height:18px;border-radius:4px;background:#3b82f6;"></div><div style="width:18px;height:18px;border-radius:4px;background:#ef4444;"></div></div><div style="font-size:15px;font-weight:700;color:#fff;">All</div><div style="font-size:11px;color:#555;">Every subject</div></div>`;
+        } else {
+            card.innerHTML = `<div class="card-bg-img" style="background-image:url('${s.bg}')"></div><div class="card-gradient"></div><div class="card-idle-content"><div class="card-emoji">${s.emoji}</div><div class="card-title">${s.label}</div></div><div class="card-hover-content"><div class="card-hover-emoji">${s.emoji}</div><div class="card-hover-title">${s.label}</div><div class="card-hover-desc">${s.desc}</div></div>`;
+        }
+        card.addEventListener('click', () => {
+            activeSubject = s.id;
+            renderSubjectCards();
+            qid('sectionTitleText').textContent = s.id === 'all' ? 'Trending Now' : s.label;
+            renderVideos(s.id === 'all' ? allVideos : allVideos.filter(v => v.subject === s.id));
+        });
+        row.appendChild(card);
+    });
+}
+
+// ── Search ─────────────────────────────────────────────
+let searchTimer;
+qid('searchInput').addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        const q = e.target.value.toLowerCase().trim();
+        const pool = activeSubject === 'all' ? allVideos : allVideos.filter(v => v.subject === activeSubject);
+        renderVideos(q ? pool.filter(v => (v.title||'').toLowerCase().includes(q) || (v.uploader_username||'').toLowerCase().includes(q)) : pool);
+    }, 200);
+});
+
+// ── Auth ───────────────────────────────────────────────
+function showLoggedIn(user) {
+    currentUser = user;
+    const name = displayName(user);
+    const av = user.user_metadata?.avatar_url;
+    const avHTML = av ? `<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="">` : initials(name);
+    qid('navRight').innerHTML = `
+        <button class="btn btn-primary" id="openUploadBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;vertical-align:middle;"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"></path><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"></polygon></svg>
+            Share Video
+        </button>
+        <div class="user-menu">
+            <div class="user-avatar" id="userAvatar">${avHTML}</div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="channel.html" class="dropdown-item">Your Channel</a>
+                <a href="settings.html" class="dropdown-item">Settings</a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" id="logoutBtn">Log out</button>
+            </div>
+        </div>`;
+
+    qid('openUploadBtn').addEventListener('click', openModal);
+    qid('userAvatar').addEventListener('click', e => { e.stopPropagation(); qid('dropdownMenu').classList.toggle('show'); });
+    if (!dropdownListenerSet) {
+        document.addEventListener('click', () => qid('dropdownMenu')?.classList.remove('show'));
+        dropdownListenerSet = true;
+    }
+    qid('dropdownMenu').addEventListener('click', e => e.stopPropagation());
+    qid('logoutBtn').addEventListener('click', async () => {
+        const { supabase } = await import('./JS/supabase.js');
+        await supabase.auth.signOut();
+    });
+}
+function showLoggedOut() {
+    currentUser = null;
+    qid('navRight').innerHTML = `<a href="login.html" class="btn btn-secondary">Log in</a><a href="login.html?mode=signup" class="btn btn-primary">Sign up</a>`;
+}
+
+// ── Sidebar toggle ─────────────────────────────────────
+function initSidebar() {
+    const toggle = qid('sidebarToggle');
+    const sidebar = qid('sidebar');
+    toggle.addEventListener('click', e => { e.stopPropagation(); sidebar.classList.toggle('open'); });
+    document.addEventListener('click', e => {
+        if (window.innerWidth <= 1024 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !toggle.contains(e.target))
+            sidebar.classList.remove('open');
+    });
+    sidebar.addEventListener('click', e => e.stopPropagation());
+    qid('scrollLeft').addEventListener('click', () => qid('subjectsRow').scrollBy({ left: -260, behavior: 'smooth' }));
+    qid('scrollRight').addEventListener('click', () => qid('subjectsRow').scrollBy({ left: 260, behavior: 'smooth' }));
+}
+
+// ── Boot ───────────────────────────────────────────────
+async function init() {
+    try {
+        const { supabase } = await import('./JS/supabase.js');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) showLoggedIn(session.user); else showLoggedOut();
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) showLoggedIn(session.user);
+            if (event === 'SIGNED_OUT') showLoggedOut();
+        });
+    } catch (e) { console.error(e); showLoggedOut(); }
+
+    renderSubjectCards();
+    renderSubjectPicker();
+    initSidebar();
+    loadVideos();
+}
+
+init();
+</script>
+</body>
+</html>
