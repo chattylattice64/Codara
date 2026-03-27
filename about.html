@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>About – Codara</title>
+    <link rel="icon" href="assets/hamico.png" type="image/x-icon" />
+    <!-- using site default fonts; no external font imports here -->
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --brand: #001f3f;
+    --brand-dark: #000000;
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #161616;
+    --border: #1f1f1f;
+    --border2: #2a2a2a;
+    --text: #ffffff;
+    --text2: #b0b0b0;
+    --text3: #6b6b6b;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* ── Sidebar (scoped to #sidebar) ── */
+#sidebar {
+    position: fixed; left: 0; top: 0; height: 100vh; width: 240px;
+    background: #131313; border-right: 1px solid var(--border);
+    padding: 20px 12px; overflow-y: auto; z-index: 150;
+    transition: transform 0.3s ease;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+#sidebar::-webkit-scrollbar { width: 6px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+#sidebar .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 34px; font-weight: 800; padding: 10px 12px;
+    color: #fff; text-decoration: none; border-radius: 8px; margin-bottom: 12px;
+}
+#sidebar .logo .logo-icon {
+    width: 56px; height: 56px; border-radius: 8px;
+    background: url('assets/hamico.png') center/contain no-repeat;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; flex-shrink: 0;
+}
+#sidebar .logo:hover { background: rgba(0,31,63,0.09); }
+#sidebar .sidebar-item {
+    display: flex; align-items: center; gap: 16px; padding: 12px 16px;
+    color: #b0b0b0; text-decoration: none; border-radius: 8px;
+    transition: all 0.2s; margin-bottom: 4px;
+}
+#sidebar .sidebar-item:hover { background: #1f1f1f; color: #fff; }
+#sidebar .sidebar-item.active { background: var(--brand); color: #fff; }
+#sidebar .sidebar-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+#sidebar .sidebar-item-text { font-size: 14px; font-weight: 500; }
+#sidebar .sidebar-section { margin-bottom: 24px; }
+#sidebar .sidebar-section-title { padding: 8px 16px; font-size: 12px; font-weight: 600; color: #6b6b6b; text-transform: uppercase; letter-spacing: 0.5px; }
+#sidebar .sidebar-divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* ── Navbar ── */
+.navbar {
+    background: #131313; padding: 16px 40px 16px 280px;
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 32px; position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid var(--border); min-height: 70px;
+}
+.navbar::before { content: ''; flex: 1; }
+.nav-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.btn {
+    padding: 10px 24px; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-secondary { background: transparent; color: #fff; border: 1px solid #3a3a3a; }
+.btn-secondary:hover { background: #1f1f1f; }
+.btn-primary { background: linear-gradient(135deg, #001f3f 0%, #000000 100%); color: white; }
+.btn-primary:hover { transform: translateY(-1px); }
+.sidebar-toggle {
+    background: #1f1f1f; border: 1px solid var(--border2);
+    border-radius: 8px; padding: 10px; cursor: pointer;
+    display: none; transition: all 0.2s; flex-shrink: 0;
+}
+.sidebar-toggle svg { width: 20px; height: 20px; color: #fff; }
+
+/* ── Main ── */
+.main-content { margin-left: 240px; min-height: 100vh; }
+
+/* ── Hero ── */
+.hero {
+    position: relative;
+    padding: 100px 60px 80px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0;
+}
+
+/* Animated background grid */
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,31,63,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,31,63,0.08) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridPulse 8s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes gridPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* Glowing orb */
+.hero-orb {
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,31,63,0.35) 0%, transparent 70%);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: orbFloat 6s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes orbFloat {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -52%) scale(1.08); }
+}
+
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0,31,63,0.2); border: 1px solid rgba(0,31,63,0.4);
+    border-radius: 100px; padding: 6px 16px;
+    font-size: 12px; font-weight: 600; color: #6699cc;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 32px; position: relative;
+    animation: fadeSlideUp 0.6s ease both;
+}
+.hero-badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6699cc;
+    animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+.hero-title {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 8px;
+    position: relative;
+    animation: fadeSlideUp 0.7s ease 0.1s both;
+}
+.hero-title span {
+    background: linear-gradient(135deg, #4488bb 0%, #aaccee 50%, #ffffff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: -1px;
+    margin-bottom: 40px;
+    position: relative;
+    animation: fadeSlideUp 0.7s ease 0.2s both;
+}
+
+.hero-desc {
+    max-width: 600px;
+    font-size: 17px;
+    line-height: 1.75;
+    color: var(--text2);
+    position: relative;
+    animation: fadeSlideUp 0.7s ease 0.3s both;
+    margin-bottom: 56px;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Feature Cards ── */
+.features {
+    padding: 0 60px 80px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: fadeSlideUp 0.7s ease both;
+    cursor: default;
+}
+.feature-card:nth-child(1) { animation-delay: 0.4s; }
+.feature-card:nth-child(2) { animation-delay: 0.5s; }
+.feature-card:nth-child(3) { animation-delay: 0.6s; }
+.feature-card:nth-child(4) { animation-delay: 0.7s; }
+.feature-card:nth-child(5) { animation-delay: 0.8s; }
+.feature-card:nth-child(6) { animation-delay: 0.9s; }
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,31,63,0.15) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+    .feature-card:hover { transform: translateY(-6px); border-color: rgba(0,31,63,0.5); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .feature-card:hover::before { opacity: 1; }
+.feature-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+    display: block;
+}
+.feature-title {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+}
+.feature-desc {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text3);
+}
+
+/* ── Stats row ── */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin: 0 60px 80px;
+    border-radius: 16px;
+    overflow: hidden;
+    animation: fadeSlideUp 0.7s ease 1s both;
+}
+.stat {
+    background: var(--surface);
+    padding: 40px 32px;
+    text-align: center;
+}
+.stat-number {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    color: #4488bb;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+.stat-label {
+    font-size: 14px;
+    color: var(--text3);
+    font-weight: 500;
+}
+
+/* ── Mission Section ── */
+.mission {
+    margin: 0 60px 80px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeSlideUp 0.7s ease 1.1s both;
+}
+.mission::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,31,63,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.mission-tag {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: #4488bb;
+    margin-bottom: 20px; display: block;
+}
+.mission-title {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    max-width: 600px;
+}
+.mission-body {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text2);
+    max-width: 640px;
+}
+
+/* ── CTA Section ── */
+.cta-section {
+    margin: 0 60px 100px;
+    background: linear-gradient(135deg, #001020 0%, #001f3f 50%, #002850 100%);
+    border: 1px solid rgba(0,31,63,0.6);
+    border-radius: 20px;
+    padding: 80px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: fadeSlideUp 0.7s ease 1.2s both;
+}
+.cta-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(68,136,187,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(68,136,187,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+}
+.cta-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: #6699cc;
+    margin-bottom: 20px; display: block; position: relative;
+}
+.cta-title {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    position: relative;
+}
+.cta-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 48px;
+    position: relative;
+}
+.cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    color: #001f3f;
+    text-decoration: none;
+    padding: 18px 40px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+.cta-btn:hover {
+    transform: translateY(-4px) scale(1.04);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    background: #f0f4f8;
+}
+.cta-btn svg { width: 20px; height: 20px; transition: transform 0.3s; }
+.cta-btn:hover svg { transform: translateX(4px); }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-toggle { display: block; }
+    .navbar { padding: 16px 20px; justify-content: flex-start; gap: 12px; }
+    .navbar::before { display: none; }
+    .main-content { margin-left: 0; }
+    .hero { padding: 60px 32px 60px; }
+    .features { padding: 0 32px 60px; grid-template-columns: repeat(2, 1fr); }
+    .stats { margin: 0 32px 60px; }
+    .mission { margin: 0 32px 60px; padding: 40px; }
+    .cta-section { margin: 0 32px 80px; padding: 60px 40px; }
+}
+@media (max-width: 768px) {
+    .hero { padding: 48px 20px; }
+    .features { padding: 0 20px 48px; grid-template-columns: 1fr; }
+    .stats { margin: 0 20px 48px; grid-template-columns: 1fr; }
+    .mission { margin: 0 20px 48px; padding: 28px; }
+    .cta-section { margin: 0 20px 60px; padding: 48px 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <a href="index.html" class="logo">
+        <div class="logo-icon"></div>
+        Codara
+    </a>
+    <div class="sidebar-section">
+        <a href="index.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span class="sidebar-item-text">Home</span>
+        </a>
+        <a href="#" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <span class="sidebar-item-text">Trending</span>
+        </a>
+        <a href="subs.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span class="sidebar-item-text">Subscriptions</span>
+        </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Library</div>
+        <a href="history.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span class="sidebar-item-text">History</span>
+        </a>
+        <a href="yourvideos.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span class="sidebar-item-text">Your Videos</span>
+        </a>
+        <a href="like.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span class="sidebar-item-text">Liked Videos</span>
+        </a>
+        <a href="tools.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+            <span class="sidebar-item-text">Toolbox</span>
+        </a>
+        <a href="about.html" class="sidebar-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span class="sidebar-item-text">About</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
+    <div class="nav-right">
+        <a href="index.html" class="btn btn-secondary">← Back to Feed</a>
+    </div>
+</nav>
+
+<!-- Main -->
+<div class="main-content">
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-orb"></div>
+        <div class="hero-badge"><div class="hero-badge-dot"></div> Educational Platform</div>
+        <h1 class="hero-title"><span>Codara</span></h1>
+        <p class="hero-subtitle">Learn without limits.</p>
+        <p class="hero-desc">
+            A free, community-driven platform where students and self-learners discover, share, and watch educational videos — all in one beautifully designed space.
+        </p>
+    </section>
+
+    <!-- Feature Cards -->
+    <div class="features">
+        <div class="feature-card">
+            <span class="feature-icon">🎯</span>
+            <div class="feature-title">Self-Paced Learning</div>
+            <div class="feature-desc">Learn at your own speed. No deadlines, no pressure. Just pure focus on understanding what matters to you.</div>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">📚</span>
+            <div class="feature-title">Curated by Students</div>
+            <div class="feature-desc">Every video is shared by real learners who found it genuinely helpful. No algorithm-pushed fluff — just what actually works.</div>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🔬</span>
+            <div class="feature-title">Every Subject</div>
+            <div class="feature-desc">Mathematics, Science, Coding, Career development, and more. One place to find the best explanations for any topic.</div>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🛠️</span>
+            <div class="feature-title">Built-in Toolbox</div>
+            <div class="feature-desc">35+ free tools right inside the platform. Convert files, write code, draw on the whiteboard — without leaving your study session.</div>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">⏱️</span>
+            <div class="feature-title">Focus Tools</div>
+            <div class="feature-desc">Pomodoro timer, study journal, and whiteboard built right into the watch page. Everything you need to stay in the zone.</div>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🆓</span>
+            <div class="feature-title">Forever Free</div>
+            <div class="feature-desc">No subscriptions. No paywalls. No ads interrupting your learning. Codara is and will always be free for every student.</div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-number">35+</div>
+            <div class="stat-label">Built-in Tools</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">∞</div>
+            <div class="stat-label">Videos to Discover</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">$0</div>
+            <div class="stat-label">Cost Forever</div>
+        </div>
+    </div>
+
+    <!-- Mission -->
+    <div class="mission">
+        <span class="mission-tag">Our Mission</span>
+        <h2 class="mission-title">Education shouldn't depend on where you come from.</h2>
+        <p class="mission-body">
+            Codara was built with one belief — that every student deserves access to great learning resources, regardless of budget, location, or background. We built a platform where the community curates the best educational content from across the web, combines it with powerful study tools, and makes the whole thing completely free. No catch. No subscription. Just learning.
+        </p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <span class="cta-label">The creator</span>
+        <h2 class="cta-title">Curious who built this?</h2>
+        <p class="cta-sub">Meet the developer behind Codara.</p>
+        <a href="https://chattylattice64.github.io/hamdi-s-Portfolio/" target="_blank" rel="noopener" class="cta-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Who am I?
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+    </div>
+
+</div>
+
+<script>
+// Sidebar toggle
+const toggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+toggle?.addEventListener('click', e => { e.stopPropagation(); sidebar.classList.toggle('open'); });
+document.addEventListener('click', e => {
+    if (window.innerWidth <= 1024 && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !toggle.contains(e.target))
+        sidebar.classList.remove('open');
+});
+
+// Scroll-triggered animations for feature cards
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.feature-card, .stat, .mission, .cta-section').forEach(el => {
+    observer.observe(el);
+});
+
+// Animated counter for stats
+function animateCounter(el, target, suffix = '') {
+    let current = 0;
+    const increment = target / 60;
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            current = target;
+            clearInterval(timer);
+        }
+        el.textContent = Math.floor(current) + suffix;
+    }, 16);
+}
+
+const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const numbers = entry.target.querySelectorAll('.stat-number');
+            numbers.forEach(num => {
+                const text = num.textContent;
+                if (text === '35+') animateCounter(num, 35, '+');
+                else if (text === '$0') { /* keep as is */ }
+                // ∞ stays as is
+            });
+            statsObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.3 });
+
+const statsEl = document.querySelector('.stats');
+if (statsEl) statsObserver.observe(statsEl);
+</script>
+</body>
+</html>
