@@ -713,13 +713,15 @@ async function runConverter(id) {
     const readDataURL = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(f); });
 
     // ── Word (DOCX) → PDF ──
-    if (id === 'docx-pdf') {
+if (id === 'docx-pdf') {
       if (!file) throw new Error('Please select a .docx file');
       setStatus('Reading Word document…'); setProgress(20);
       const ab = await readAB(file);
       const result = await mammoth.convertToHtml({ arrayBuffer: ab });
       if (result.messages.length) console.warn('Mammoth warnings:', result.messages);
       setProgress(50); setStatus('Rendering to PDF…');
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'position:fixed;left:-9999px;width:816px;height:1056px;';
       const styledHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'
         + 'body{font-family:Calibri,Arial,sans-serif;font-size:12pt;line-height:1.5;max-width:800px;margin:0;padding:20px;color:#111;}'
         + 'h1{font-size:18pt;margin:16px 0 8px;}h2{font-size:14pt;margin:14px 0 6px;}h3{font-size:12pt;margin:12px 0 4px;}'
