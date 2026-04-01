@@ -714,38 +714,29 @@ async function runConverter(id) {
 
     // ── Word (DOCX) → PDF ──
 if (id === 'docx-pdf') {
-      if (!file) throw new Error('Please select a .docx file');
-      setStatus('Reading Word document…'); setProgress(20);
-      const ab = await readAB(file);
-      const result = await mammoth.convertToHtml({ arrayBuffer: ab });
-      if (result.messages.length) console.warn('Mammoth warnings:', result.messages);
-      setProgress(50); setStatus('Rendering to PDF…');
-      const iframe = document.createElement('iframe');
-      iframe.style.cssText = 'position:fixed;left:-9999px;width:816px;height:1056px;';
-      const styledHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'
-        + 'body{font-family:Calibri,Arial,sans-serif;font-size:12pt;line-height:1.5;max-width:800px;margin:0;padding:20px;color:#111;}'
-        + 'h1{font-size:18pt;margin:16px 0 8px;}h2{font-size:14pt;margin:14px 0 6px;}h3{font-size:12pt;margin:12px 0 4px;}'
-        + 'p{margin:0 0 8px;}ul,ol{margin:4px 0 8px 24px;}table{border-collapse:collapse;width:100%;margin:8px 0;}'
-        + 'td,th{border:1px solid #ccc;padding:4px 8px;}th{background:#f0f0f0;font-weight:bold;}'
-        + 'strong{font-weight:bold;}em{font-style:italic;}'
-        + '<\/style><\/head><body>' + result.value + '<\/body><\/html>';
-      document.body.appendChild(iframe);
-      iframe.contentDocument.open();
-      iframe.contentDocument.write(styledHtml);
-      iframe.contentDocument.close();
-      await new Promise(r => setTimeout(r, 600));
-      setProgress(70);
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit:'pt', format:'letter' });
-      await doc.html(iframe.contentDocument.body, {
-        margin:[36,36,36,36], autoPaging:'text',
-        x:36, y:36, width:540, windowWidth:816
-      });
-      document.body.removeChild(iframe);
-      setProgress(95);
-      setDownload(doc.output('blob'), file.name.replace(/\.[^.]+$/, '.pdf'));
-      setStatus('PDF ready!', 'success');
-    }
+    if (!file) throw new Error('Please select a .docx file');
+    setStatus('Reading Word document…'); setProgress(20);
+    const ab = await readAB(file);
+    const result = await mammoth.extractRawText({ arrayBuffer: ab });
+    setProgress(60); setStatus('Building PDF…');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'mm', format:'a4' });
+    const margin = 15;
+    const pageW = 210 - margin * 2;
+    const lineH = 6;
+    let y = margin;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    const lines = doc.splitTextToSize(result.value, pageW);
+    lines.forEach(line => {
+        if (y + lineH > 280) { doc.addPage(); y = margin; }
+        doc.text(line, margin, y);
+        y += lineH;
+    });
+    setProgress(95);
+    setDownload(doc.output('blob'), file.name.replace(/\.[^.]+$/, '.pdf'));
+    setStatus('PDF ready!', 'success');
+}
 
     // ── Word (DOCX) → HTML ──
     else if (id === 'docx-html') {
